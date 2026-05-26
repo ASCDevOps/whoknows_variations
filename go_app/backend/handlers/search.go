@@ -31,7 +31,15 @@ type SearchResult struct {
 
 func (h *SearchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
-	data := SearchPageData{Query: query}
+
+	data := SearchPageData{
+		Query: query,
+	}
+
+	cookie, err := r.Cookie("session")
+	if err == nil {
+		data.User = cookie.Value
+	}
 
 	if query != "" {
 		data.SearchResults = queryPages(h.DB, query, r.URL.Path, r.Method)
