@@ -87,8 +87,16 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		log.Printf("DB insert error: %v", err)
-		msg := "user creation failed"
+		if strings.Contains(err.Error(), "unique") || strings.Contains(err.Error(), "duplicate") {
+			msg := "username or email already exists"
+			writeRegisterJSON(w, http.StatusConflict, structs.AuthResponse{
+				StatusCode: intPtr(409),
+				Message:    &msg,
+			})
+			return
+		}
 
+		msg := "user creation failed"
 		writeRegisterJSON(w, http.StatusInternalServerError, structs.AuthResponse{
 			StatusCode: intPtr(500),
 			Message:    &msg,
